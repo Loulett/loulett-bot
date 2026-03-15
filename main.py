@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from datetime import datetime, date, time, timedelta
 import re
@@ -14,6 +15,8 @@ PCC_BASE = "https://princecharlescinema.com"
 
 
 def load_token() -> str:
+    if token := os.environ.get("TELEGRAM_BOT_TOKEN"):
+        return token
     return Path(".token").read_text().strip()
 
 
