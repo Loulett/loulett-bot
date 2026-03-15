@@ -156,17 +156,23 @@ async def _send_reply(update: Update, text: str) -> None:
         await update.message.reply_text(chunk, **kwargs)
 
 
-async def kino_next_day(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    tomorrow = date.today() + timedelta(days=1)
+async def _kino_single_day(update: Update, d: date) -> None:
     all_screenings = await fetch_screenings()
     screenings = [
         s
         for s in all_screenings
-        if s["date"] == tomorrow
-        and (not _is_weekday(tomorrow) or s["time"].hour >= 18)
+        if s["date"] == d and (not _is_weekday(d) or s["time"].hour >= 18)
     ]
-    msg = _format_message(screenings, f"PCC — {tomorrow.strftime('%A %-d %b')}")
+    msg = _format_message(screenings, f"PCC — {d.strftime('%A %-d %b')}")
     await _send_reply(update, msg)
+
+
+async def kino_today(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await _kino_single_day(update, date.today())
+
+
+async def kino_next_day(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await _kino_single_day(update, date.today() + timedelta(days=1))
 
 
 async def kino_next_week(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -196,6 +202,7 @@ async def kino_next_weekend(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 def main() -> None:
     app = ApplicationBuilder().token(load_token()).build()
     app.add_handler(CommandHandler("hello", hello))
+    app.add_handler(CommandHandler("kino_today", kino_today))
     app.add_handler(CommandHandler("kino_next_day", kino_next_day))
     app.add_handler(CommandHandler("kino_next_week", kino_next_week))
     app.add_handler(CommandHandler("kino_next_weekend", kino_next_weekend))
